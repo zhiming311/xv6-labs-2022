@@ -9,6 +9,7 @@
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
+static uint64 g_nproc = 0;
 
 struct proc *initproc;
 
@@ -145,6 +146,7 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+  g_nproc += 1;
 
   return p;
 }
@@ -169,6 +171,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  g_nproc -= 1;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -683,4 +686,11 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// Return the number of not unused processes
+uint64
+num_proc(void)
+{
+	return g_nproc;
 }
