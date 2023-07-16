@@ -71,11 +71,35 @@ sys_sleep(void)
 
 
 #ifdef LAB_PGTBL
+#define MAX_DETECT_PAGES 64
 int
 sys_pgaccess(void)
 {
   // lab pgtbl: your code here.
-  return 0;
+  struct proc *p = myproc();
+  uint64 mask = 0;
+  uint64 uvaddr_buf;
+  uint64 uvaddr_abits;
+  pte_t *pte;
+  int n;
+  int ret = 0;
+
+  argint(1, &n);
+  if(n > MAX_DETECT_PAGES){
+    printf("pgaccess: too large number of pages\n");
+    return -1;
+  }
+
+  argaddr(0, &uvaddr_buf);
+  argaddr(2, &uvaddr_abits);
+  for(int i = 0; i < n; ++i){
+    if((pte = walk(p->pagetable, uvaddr_buf + i * (1 << PGSHIFT), 0)) > 0){
+      mask |= (((*pte & PTE_A) >> 6) << i);
+      *pte = (*pte) & (~PTE_A);
+    }
+  }
+  ret = copyout(p->pagetable, uvaddr_abits, (char *)&mask, sizeof(mask));
+  return ret;
 }
 #endif
 
