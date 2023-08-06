@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -145,6 +146,11 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+
+  p->handler = NULL;
+  p->ticks = 0;
+  p->target_ticks = 0;
+  memset(&p->cache_trapframe, 0, sizeof(p->cache_trapframe));
 
   return p;
 }
